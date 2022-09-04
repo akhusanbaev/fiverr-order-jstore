@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
-import { ADMIN_TELEGRAM_ID, PORT } from "./helper/config.js";
+import { ADMIN_TELEGRAM_ID, PORT, TELEGRAM_BOT_TOKEN, WEBHOOK_INFO } from "./helper/config.js";
 import { bot } from "./helper/bot.js";
 import { settingsCollection } from "./models/settings.js";
 import { usersCollection } from "./models/users.js";
@@ -20,6 +20,10 @@ import { Mailer } from "./helper/Mailer.js";
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
+app.post(`/bot${TELEGRAM_BOT_TOKEN}`, (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(201);
+});
 app.get(`/`, (req, res) => {
     res.send(`HELLO WORLD!`);
 });
@@ -39,6 +43,7 @@ settingsCollection.findOne().then(res => {
         return;
     settingsCollection.insertOne({ welcomeMessage: "Welcome!" }).catch(console.log);
 }).catch(console.log);
+bot.setWebHook(`${WEBHOOK_INFO}/bot${TELEGRAM_BOT_TOKEN}`).catch(console.log);
 bot.on("message", (msg) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!msg.from)
